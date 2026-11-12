@@ -1,124 +1,113 @@
-// Para añadir una etapa, agrega un objeto a esta lista.
-var etapas = [
-  {tab:"Los inicios", year:"1972", title:"Nace BMW Motorsport GmbH", text:"BMW crea en Múnich su propia división de competición. Su primer objetivo es ganar en turismos y llevar esa experiencia a modelos de calle."},
-  {tab:"Los 70", year:"1973", title:"El reinado del 3.0 CSL", text:"El 3.0 CSL domina el campeonato europeo de turismos y se hace famoso por su aerodinámica extrema."},
-  {tab:"Fórmula 1 turbo", year:"1983", title:"Campeón con Brabham", text:"Nelson Piquet gana el título mundial con motor BMW turbo, el primero en lograrlo con un motor turbo."},
-  {tab:"Le Mans", year:"1999", title:"Victoria en las 24 Horas", text:"El BMW V12 LMR gana la carrera de resistencia más famosa del mundo."},
-  {tab:"Williams y Sauber", year:"2000–2009", title:"BMW vuelve a la F1", text:"Primero como proveedor de motores de Williams y después con su propio equipo, BMW Sauber."},
-  {tab:"Hoy", year:"2022 en adelante", title:"GT3 e híbridos", text:"El M4 GT3 compite en campeonatos GT y el M Hybrid V8 lleva la marca a IMSA y al Mundial de Resistencia."}
-];
-var tabs = document.querySelector(".years");
-function show(i){
-  var e = etapas[i];
-  document.getElementById("d-title").textContent = e.title;
-  document.getElementById("d-year").textContent = e.year;
-  document.getElementById("d-text").textContent = e.text;
-  [].forEach.call(tabs.children, function(b, j){ b.setAttribute("aria-selected", j === i); });
-}
-etapas.forEach(function(e, i){
-  var b = document.createElement("button");
-  b.setAttribute("role", "tab");
-  b.textContent = e.tab;
-  b.addEventListener("click", function(){ show(i); });
-  tabs.appendChild(b);
-});
-show(0);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BMW Motorsport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-// Flujo: Entrar → video en pantalla completa → al terminar, la página y el audio.
-var audio = document.getElementById("audio"), video = document.getElementById("video"),
-    intro = document.getElementById("intro"), entrada = document.getElementById("entrada"),
-    btnSonido = document.getElementById("sonido"), listo = false;
+<div id="progreso" aria-hidden="true"></div>
+<div id="lightbox" hidden><img alt=""></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="roundel" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="97" fill="#000" stroke="#fff" stroke-width="3"/>
+    <circle cx="100" cy="100" r="64" fill="#fff" stroke="#fff" stroke-width="2"/>
+    <path d="M100 100V36A64 64 0 0 0 36 100Z" fill="#0C1530"/>
+    <path d="M100 100V164A64 64 0 0 0 164 100Z" fill="#0C1530"/>
+    <path d="M100 36V164M36 100H164" stroke="#000" stroke-width="2"/>
+    <circle cx="100" cy="100" r="64" fill="none" stroke="#000" stroke-width="2"/>
+    <path id="arco" d="M26 100A74 74 0 0 1 174 100" fill="none"/>
+    <text font-family="Archivo,Arial,sans-serif" font-size="25" font-weight="700" fill="#fff" letter-spacing="7">
+      <textPath href="#arco" startOffset="50%" text-anchor="middle">BMW</textPath>
+    </text>
+  </symbol>
+</svg>
 
-function etiqueta(){ btnSonido.textContent = audio.paused ? "Activar sonido" : "Silenciar"; }
-function terminar(){
-  if (listo) return; listo = true;
-  try { if (document.fullscreenElement) document.exitFullscreen(); } catch(e){}
-  video.pause();
-  intro.classList.remove("on");
-  document.body.classList.add("dentro");
-  btnSonido.hidden = false;
-  audio.currentTime = 0;
-  audio.play().then(etiqueta).catch(etiqueta);
-}
-document.getElementById("entrar").addEventListener("click", function(){
-  // "Desbloquea" el audio dentro del toque, para poder iniciarlo luego sin otro toque.
-  audio.play().then(function(){ audio.pause(); audio.currentTime = 0; }).catch(function(){});
-  entrada.style.display = "none";
-  intro.classList.add("on");
-  try { if (intro.requestFullscreen) intro.requestFullscreen().catch(function(){}); } catch(e){}
-  video.play().catch(terminar);
-});
-video.addEventListener("ended", terminar);
-video.addEventListener("error", terminar);
-document.getElementById("saltar").addEventListener("click", terminar);
-document.addEventListener("fullscreenchange", function(){ if (!document.fullscreenElement && intro.classList.contains("on")) terminar(); });
-btnSonido.addEventListener("click", function(){
-  if (audio.paused) audio.play().then(etiqueta); else { audio.pause(); etiqueta(); }
-});
-// --- Más interacción ---
-document.getElementById("anios").dataset.to = new Date().getFullYear() - 1972;
+<div id="entrada">
+  <svg class="logo" role="img" aria-label="Logo de BMW"><use href="#roundel"/></svg>
+  <p>Esta página tiene video y sonido. Toca el botón para entrar.</p>
+  <button id="entrar">Entrar con sonido</button>
+</div>
 
-// Barra de progreso al hacer scroll
-var prog = document.getElementById("progreso");
-addEventListener("scroll", function(){
-  var h = document.documentElement;
-  prog.style.transform = "scaleX(" + (h.scrollTop / ((h.scrollHeight - h.clientHeight) || 1)) + ")";
-}, {passive:true});
+<div id="intro">
+  <video id="video" playsinline preload="auto" src="assets/intro.mp4"></video>
+  <button id="saltar">Saltar</button>
+</div>
 
-// Aparecer al hacer scroll, y contar los números
-function contar(b){
-  var to = +b.dataset.to, t0 = null;
-  (function f(t){ t0 = t0 || t; var p = Math.min((t - t0) / 1400, 1);
-    b.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
-    if (p < 1) requestAnimationFrame(f); })(performance.now());
-}
-var io = new IntersectionObserver(function(es){
-  es.forEach(function(e){
-    if (!e.isIntersecting) return;
-    e.target.classList.add("vis"); io.unobserve(e.target);
-    var b = e.target.querySelector("b[data-to]"); if (b) contar(b);
-  });
-}, {threshold:.2});
-document.querySelectorAll("section h2,.intro,.timeline,.car,.stat").forEach(function(el){
-  el.classList.add("rev");
-  el.style.transitionDelay = (Array.prototype.indexOf.call(el.parentNode.children, el) * 90) + "ms";
-  io.observe(el);
-});
+<button id="sonido" hidden>Silenciar</button>
+<audio id="audio" preload="auto" src="assets/musica.mp3"></audio>
 
-// El logo se mueve un poco con el mouse
-var heroEl = document.querySelector(".hero");
-heroEl.addEventListener("mousemove", function(e){
-  var r = heroEl.getBoundingClientRect();
-  heroEl.style.setProperty("--tx", ((e.clientX - r.left) / r.width - .5) * -40 + "px");
-  heroEl.style.setProperty("--ty", ((e.clientY - r.top) / r.height - .5) * -40 + "px");
-});
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <h1>BMW<br>Motorsport</h1>
+      <p class="lead">Desde 1972, la división de competición de BMW convierte pistas, rallies y carreras de resistencia en ingeniería que después llega a la calle.</p>
+      <a class="btn" href="#historia">Ver la historia</a>
+    </div>
+    <svg class="logo" role="img" aria-label="Logo de BMW"><use href="#roundel"/></svg>
+  </div>
+</header>
 
-// Tarjetas que se inclinan y brillan donde pasa el mouse
-document.querySelectorAll(".car").forEach(function(c){
-  c.addEventListener("mousemove", function(e){
-    var r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-    c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%");
-    c.style.transform = "perspective(700px) rotateX(" + (.5 - y) * 12 + "deg) rotateY(" + (x - .5) * 12 + "deg)";
-  });
-  c.addEventListener("mouseleave", function(){ c.style.transform = ""; });
-});
+<section id="datos">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b id="anios" data-to="54">0</b><span>años de historia</span></div>
+      <div class="stat"><b data-to="1983">0</b><span>título de F1 con Brabham</span></div>
+      <div class="stat"><b data-to="1999">0</b><span>victoria en Le Mans</span></div>
+    </div>
+  </div>
+</section>
 
-// Línea de tiempo: el panel se anima y se maneja con las flechas
-var cur = 0, panel = document.querySelector(".detail"), _show = show;
-show = function(i){
-  cur = i; _show(i);
-  panel.classList.remove("cambia"); void panel.offsetWidth; panel.classList.add("cambia");
-};
-tabs.addEventListener("keydown", function(e){
-  var k = {ArrowDown:1, ArrowRight:1, ArrowUp:-1, ArrowLeft:-1}[e.key]; if (!k) return;
-  e.preventDefault();
-  var n = (cur + k + etapas.length) % etapas.length; show(n); tabs.children[n].focus();
-});
+<section id="historia">
+  <div class="wrap">
+    <h2>Medio siglo de carreras</h2>
+    <p class="intro">Elige una etapa para ver qué pasó.</p>
+    <div class="timeline">
+      <div class="years" role="tablist" aria-label="Etapas"></div>
+      <article class="detail" aria-live="polite">
+        <h3 id="d-title"></h3>
+        <p class="yr" id="d-year"></p>
+        <p id="d-text"></p>
+      </article>
+    </div>
+  </div>
+</section>
 
-// Galería: clic para ver la foto grande
-var lb = document.getElementById("lightbox");
-document.querySelectorAll(".galeria img").forEach(function(im){
-  im.addEventListener("click", function(){ lb.querySelector("img").src = im.src; lb.hidden = false; });
-});
-lb.addEventListener("click", function(){ lb.hidden = true; });
-addEventListener("keydown", function(e){ if (e.key === "Escape") lb.hidden = true; });
+<section id="coches">
+  <div class="wrap">
+    <h2>Coches que hicieron historia</h2>
+    <p class="intro">Algunos de los más conocidos de la marca en competición.</p>
+    <div class="cars">
+      <div class="car"><small>1973</small><h3>3.0 CSL</h3><p>El “Batmobile”: alerones enormes y victorias en el campeonato europeo de turismos.</p></div>
+      <div class="car"><small>1978</small><h3>M1</h3><p>El primer deportivo de producción de BMW Motorsport, con su propia serie de carreras, la Procar.</p></div>
+      <div class="car"><small>1987</small><h3>M3 E30</h3><p>Nació para homologar un coche de competición y se volvió leyenda en turismos.</p></div>
+      <div class="car"><small>1999</small><h3>V12 LMR</h3><p>Prototipo que ganó las 24 Horas de Le Mans.</p></div>
+      <div class="car"><small>2022</small><h3>M4 GT3</h3><p>Coche de clientes para campeonatos GT de todo el mundo.</p></div>
+      <div class="car"><small>2023</small><h3>M Hybrid V8</h3><p>Prototipo híbrido de la era actual, en IMSA y en el Mundial de Resistencia.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="galeria">
+  <div class="wrap">
+    <h2>Galería</h2>
+    <p class="intro">Tres BMW M en la ciudad.</p>
+    <div class="galeria">
+<img src="assets/foto1.jpg" alt="Un BMW M8 negro en un garaje con luces" loading="lazy">
+<img src="assets/foto2.jpg" alt="Un BMW M3 negro frente a un edificio de cristal de noche" loading="lazy">
+<img src="assets/foto3.jpg" alt="Un BMW M3 blanco en una calle de la ciudad de noche" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Proyecto personal hecho por diversión. No es un sitio oficial de BMW.</div>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>
