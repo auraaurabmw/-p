@@ -122,3 +122,20 @@ document.querySelectorAll(".galeria img").forEach(function(im){
 });
 lb.addEventListener("click", function(){ lb.hidden = true; });
 addEventListener("keydown", function(e){ if (e.key === "Escape") lb.hidden = true; });
+
+// Botón troll
+var troll = document.getElementById("troll"), gemi2 = document.getElementById("gemi2"), saturada = document.getElementById("saturada");
+document.getElementById("troll-btn").addEventListener("click", function(){
+  audio.pause(); etiqueta();
+  troll.hidden = false;
+  gemi2.currentTime = 0; gemi2.play().catch(function(){});
+});
+gemi2.addEventListener("ended", function(){
+  troll.classList.add("shake");
+  saturada.currentTime = 0; saturada.play().catch(function(){});
+});
+document.getElementById("troll-volver").addEventListener("click", function(){
+  troll.hidden = true; troll.classList.remove("shake");
+  gemi2.pause(); saturada.pause();
+  audio.play().then(etiqueta).catch(etiqueta);
+});
